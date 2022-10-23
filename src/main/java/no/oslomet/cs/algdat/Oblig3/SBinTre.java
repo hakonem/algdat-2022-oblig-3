@@ -2,10 +2,7 @@ package no.oslomet.cs.algdat.Oblig3;
 
 
 import javax.sound.midi.SysexMessage;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Objects;
-import java.util.StringJoiner;
+import java.util.*;
 
 public class SBinTre<T> {
     private static final class Node<T>   // en indre nodeklasse
@@ -150,19 +147,24 @@ public class SBinTre<T> {
     }
 
     private static <T> Node<T> førstePostorden(Node<T> p) {
+        if (p.verdi == null) throw new NoSuchElementException("Treet er tomt!");
         while (p != null) {
-            if (p.venstre == null) p = p.høyre;
-            else {
-                p = p.venstre;
-            }
+            if (p.venstre != null) p = p.venstre;
+            else if (p.høyre != null) p = p.høyre;
+            else return p;
         }
         return p;
     }
 
     private static <T> Node<T> nestePostorden(Node<T> p) {
+        if (p.verdi == null) throw new NoSuchElementException("Treet er tomt!");
         while (p != null) {
-            if (p.forelder.høyre != null)
-                p = p.forelder;
+            if (p.forelder == null) return p;
+            else if (p == p.forelder.høyre) return p.forelder;
+            else {
+                if (p.forelder.høyre == null) return p.forelder;
+                else return førstePostorden(p.forelder.høyre);
+            }
         }
         return p;
     }
