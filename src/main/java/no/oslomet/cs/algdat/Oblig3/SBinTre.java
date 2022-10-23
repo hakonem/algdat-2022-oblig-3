@@ -130,18 +130,18 @@ public class SBinTre<T> {
     }
 
     public int antall(T verdi) {
-        Node<T> p = rot;
-        int antall = 0;
+        Node<T> p = rot;                // p starter i roten
+        int antall = 0;                 // initialiserer teller
     
-        while (p != null) {
-            int cmp = comp.compare(verdi, p.verdi);
-            if (cmp < 0) p = p.venstre;
+        while (p != null) {             // fortsetter til p er ute av treet
+            int cmp = comp.compare(verdi, p.verdi);         // sammenligner søkeverdien med verdien i noden
+            if (cmp < 0) p = p.venstre;         // hvis søkverdien er mindre enn verdien i noden, flytter til venstre barn
             else {
-                if (cmp == 0) antall++;
-                p = p.høyre;
+                if (cmp == 0) antall++;         // øker telleren hvis vi finner søkeverdien OG
+                p = p.høyre;                    // flytter til høyre barn
             }
         }
-        return antall;
+        return antall;                          // returnerer antall
     }
 
     public void nullstill() {
