@@ -1,6 +1,7 @@
 package no.oslomet.cs.algdat.Oblig3;
 
 
+import javax.sound.midi.SysexMessage;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Objects;
@@ -149,11 +150,21 @@ public class SBinTre<T> {
     }
 
     private static <T> Node<T> førstePostorden(Node<T> p) {
-        throw new UnsupportedOperationException("Ikke kodet ennå!");
+        while (p != null) {
+            if (p.venstre == null) p = p.høyre;
+            else {
+                p = p.venstre;
+            }
+        }
+        return p;
     }
 
     private static <T> Node<T> nestePostorden(Node<T> p) {
-        throw new UnsupportedOperationException("Ikke kodet ennå!");
+        while (p != null) {
+            if (p.forelder.høyre != null)
+                p = p.forelder;
+        }
+        return p;
     }
 
     public void postorden(Oppgave<? super T> oppgave) {
