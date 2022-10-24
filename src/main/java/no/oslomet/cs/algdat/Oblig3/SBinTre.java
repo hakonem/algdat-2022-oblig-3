@@ -107,18 +107,6 @@ public class SBinTre<T> {
         return true;                             // vellykket innlegging
     }
     
-    public static void main(String[] args) {
-        Integer[] a = {4,7,2,9,4,10,8,7,4,6};
-        SBinTre<Integer> tre = new SBinTre<>(Comparator.naturalOrder());
-        for (int verdi : a) { tre.leggInn(verdi); }
-    
-        System.out.println(tre.antall());      // Utskrift: 10
-        System.out.println(tre.antall(5));     // Utskrift: 0
-        System.out.println(tre.antall(4));     // Utskrift: 3
-        System.out.println(tre.antall(7));     // Utskrift: 2
-        System.out.println(tre.antall(10));    // Utskrift: 1
-    }
-
     public boolean fjern(T verdi) {
         throw new UnsupportedOperationException("Ikke kodet ennå!");
     }
@@ -147,26 +135,29 @@ public class SBinTre<T> {
     }
 
     private static <T> Node<T> førstePostorden(Node<T> p) {
-        if (p.verdi == null) throw new NoSuchElementException("Treet er tomt!");
-        while (p != null) {
-            if (p.venstre != null) p = p.venstre;
-            else if (p.høyre != null) p = p.høyre;
-            else return p;
+        while (p != null) {                             // fortsetter til p er ute av treet
+            if (p.venstre != null) p = p.venstre;       // flytter p først til venstre
+            else if (p.høyre != null) p = p.høyre;      // hvis venstre barn finnes ikke, flytter til høyre
+            else return p;                              // bladnode
         }
-        return p;
+        return p;                                       // returnerer p
     }
 
     private static <T> Node<T> nestePostorden(Node<T> p) {
-        if (p.verdi == null) throw new NoSuchElementException("Treet er tomt!");
-        while (p != null) {
-            if (p.forelder == null) return p;
-            else if (p == p.forelder.høyre) return p.forelder;
+        Node<T> q = p.forelder;                          // q er forelder til p
+        while (p != null) {                             // fortsetter til p er ute av treet
+            if (q == null) return null;                 // returnerer null hvis p er rotnode
+            if (p == q.høyre) {                         // hvis p er høyre barn, er neste node forelder
+                p = q;
+                break;
+            }
             else {
-                if (p.forelder.høyre == null) return p.forelder;
-                else return førstePostorden(p.forelder.høyre);
+                if (q.høyre == null) p = q;             // hvis p er venstre barn og alenebarn, er neste node forelder
+                else p = førstePostorden(q.høyre);      // ellers er neste node den første noden i subtreet med q.høyre som rot
+                break;
             }
         }
-        return p;
+        return p;                                       // returnerer p
     }
 
     public void postorden(Oppgave<? super T> oppgave) {
