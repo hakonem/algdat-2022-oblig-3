@@ -81,7 +81,7 @@ public class SBinTre<T> {
         return antall == 0;
     }
 
-    //Programkode 5.2.3 a) fra kompendiet
+    //Programkode 5.2.3 a) fra kompendiet med endringer
     public boolean leggInn(T verdi) {
         Objects.requireNonNull(verdi, "Ulovlig med nullverdier!");
     
@@ -107,7 +107,7 @@ public class SBinTre<T> {
         return true;                             // vellykket innlegging
     }
     
-    //Basert på programkode 5.2 8 d) fra kompendiet
+    //Programkode 5.2 8 d) fra kompendiet med endringer
     public boolean fjern(T verdi) {
         if (verdi == null) return false;  // treet har ingen nullverdier
     
@@ -122,26 +122,26 @@ public class SBinTre<T> {
         }
         if (p == null) return false;   // finner ikke verdi
         
-        if (p.venstre == null && p.høyre == null) {
+        if (p.venstre == null && p.høyre == null) {         // Tilfelle 1: p er bladnode
             if (p == rot) rot = null;
-            else if (p == q.venstre) q.venstre = null;
+            else if (p == q.venstre) q.venstre = null;      // pekeren fra forelderen satt til null
             else q.høyre = null;
         }
     
-        else if (p.venstre == null || p.høyre == null)  // Tilfelle 1) og 2)
+        else if (p.venstre == null || p.høyre == null)  // Tilfelle 2: p har ett barn
         {
             Node<T> b = p.venstre != null ? p.venstre : p.høyre;  // b for barn
             if (p == rot) rot = b;
             if (p == q.venstre) {
-                q.venstre = b;
-                b.forelder = q;
+                q.venstre = b;                      // pekeren fra forelder til nytt barn
+                b.forelder = q;                     // pekeren fra nytt barn tilbake til forelder
             }
             else {
                 q.høyre = b;
                 b.forelder = q;
             }
         }
-        else  // Tilfelle 3)
+        else  // Tilfelle 3: p har to barn
         {
             Node<T> s = p, r = p.høyre;   // finner neste i inorden
             while (r.venstre != null)
@@ -160,8 +160,87 @@ public class SBinTre<T> {
         return true;
     }
 
+    //Kode fra løsningsforslag til Avsnitt 5.2.8, oppgave 4 i kompendiet - med endringer
     public int fjernAlle(T verdi) {
-        throw new UnsupportedOperationException("Ikke kodet ennå!");
+        if (verdi == null) throw new
+                IllegalArgumentException("verdi er null!");
+    
+        Node<T> p = rot;   // hjelpepeker
+        Node<T> q = null;  // forelder til p
+        Node<T> r = null;  // neste i inorden mhp. verdi
+        Node<T> s = null;  // forelder til r
+        
+        if (tom()) return 0;
+    
+        if (p.venstre == null && p.høyre == null) {
+            rot = null;
+            return 1;
+        }
+    
+        Deque<Node<T>> stakk = new ArrayDeque<Node<T>>();
+    
+        while (p != null)     // leter etter verdi
+        {
+            int cmp = comp.compare(verdi,p.verdi);  // sammenligner
+        
+            if (cmp < 0) // skal til venstre
+            {
+                s = r;
+                r = q = p;
+                p = p.venstre;
+            }
+            else
+            {
+                if (cmp == 0)  // verdi ligger i p
+                {
+                    if (q != null) stakk.addLast(q);  // legger inn forelder til p
+                    stakk.addLast(p);  // legger inn p
+                }
+                // skal videre til høyre
+                q = p;
+                p = p.høyre;
+            }
+        }
+    
+        // det er lagt inn to noder for hvert treff
+        int verdiAntall = stakk.size()/2;
+        if (verdiAntall % 2 == 1) verdiAntall ++;
+    
+        if (verdiAntall == 0) return 0;
+    
+        while (stakk.size() > 2)
+        {
+            p = stakk.removeLast();  // p har ikke venstre barn
+            q = stakk.removeLast();  // forelder til p
+        
+            if (p == q.venstre) q.venstre = p.høyre;
+            else q.høyre = p.høyre;
+        }
+    
+        // Har nå fjernet alle duplikatene,
+        // men har igjen første forekomst
+    
+        p = stakk.removeLast();  // p inneholder verdi
+        q = stakk.removeLast();  // forelder til p
+    
+        // Tilfelle 1) og 2), dvs. p har ikke to barn
+        if (p.venstre == null || p.høyre == null)
+        {
+            Node<T> x = p.høyre == null ? p.venstre : p.høyre;
+            if (p == rot) rot = x;
+            else if (p == q.venstre) q.venstre = x;
+            else q.høyre = x;
+        }
+        else  // p har to barn
+        {
+            p.verdi = r.verdi;   // kopierer fra den neste i inorden
+            if (r == p.høyre) p.høyre = r.høyre;
+            else s.venstre = r.høyre;
+        }
+    
+        antall -= verdiAntall;
+    
+        return verdiAntall;
     }
 
     public int antall(T verdi) {
@@ -180,7 +259,28 @@ public class SBinTre<T> {
     }
 
     public void nullstill() {
-        throw new UnsupportedOperationException("Ikke kodet ennå!");
+        Node<T> p = rot;                // p starter i roten
+        
+        if (tom()) return;
+        
+        if (p.venstre == null && p.høyre == null) {
+            fjern(p.verdi);
+            return;
+        }
+        while (p != null) {
+            if (p.venstre != null) {
+                p = p.venstre;
+                return;
+            }
+            fjern(p.verdi);
+            if (p.høyre != null) {
+                p = p.høyre;
+                return;
+            }
+            fjern(p.verdi);
+           
+            return;
+        }
     }
 
     private static <T> Node<T> førstePostorden(Node<T> p) {
@@ -209,16 +309,46 @@ public class SBinTre<T> {
         return p;                                       // returnerer p
     }
 
+    //Kode fra løsningsforslag til Avsnitt 5.1.15, oppgave 1 i kompendiet
     public void postorden(Oppgave<? super T> oppgave) {
-        throw new UnsupportedOperationException("Ikke kodet ennå!");
+        if (tom()) return;
+        
+        Node<T> p = rot;
+        
+        while (true) {
+            if (p.venstre != null) p = p.venstre;
+            else if (p.høyre != null) p = p.høyre;
+            else break;
+        }
+        
+        oppgave.utførOppgave(p.verdi);
+        
+        while (true) {
+            if (p == rot) break;
+            
+            Node<T> q = p.forelder;
+            if (q.høyre == null || p == q.høyre) p = q;
+            else {
+                p = q.høyre;
+                while (true) {
+                    if (p.venstre != null) p = p.venstre;
+                    else if (p.høyre != null) p = p.høyre;
+                    else break;
+                }
+            }
+            oppgave.utførOppgave(p.verdi);
+        }
     }
-
+    
+    //Kode fra løsningsforslag til Avsnitt 5.1.7, oppgave 7 i kompendiet
     public void postordenRecursive(Oppgave<? super T> oppgave) {
-        postordenRecursive(rot, oppgave);
+        if (rot != null) postordenRecursive(rot, oppgave);
     }
 
     private void postordenRecursive(Node<T> p, Oppgave<? super T> oppgave) {
-        throw new UnsupportedOperationException("Ikke kodet ennå!");
+        if (p.venstre != null) postordenRecursive(p.venstre, oppgave);
+        if (p.høyre != null) postordenRecursive(p.høyre, oppgave);
+        oppgave.utførOppgave(p.verdi);
     }
 
     public ArrayList<T> serialize() {
