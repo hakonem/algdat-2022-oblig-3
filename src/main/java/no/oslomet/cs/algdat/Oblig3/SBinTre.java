@@ -107,6 +107,7 @@ public class SBinTre<T> {
         return true;                             // vellykket innlegging
     }
     
+    //Basert på programkode 5.2 8 d) fra kompendiet
     public boolean fjern(T verdi) {
         if (verdi == null) return false;  // treet har ingen nullverdier
     
@@ -120,13 +121,25 @@ public class SBinTre<T> {
             else break;    // den søkte verdien ligger i p
         }
         if (p == null) return false;   // finner ikke verdi
+        
+        if (p.venstre == null && p.høyre == null) {
+            if (p == rot) rot = null;
+            else if (p == q.venstre) q.venstre = null;
+            else q.høyre = null;
+        }
     
-        if (p.venstre == null || p.høyre == null)  // Tilfelle 1) og 2)
+        else if (p.venstre == null || p.høyre == null)  // Tilfelle 1) og 2)
         {
             Node<T> b = p.venstre != null ? p.venstre : p.høyre;  // b for barn
             if (p == rot) rot = b;
-            else if (p == q.venstre) q.venstre = b;
-            else q.høyre = b;
+            if (p == q.venstre) {
+                q.venstre = b;
+                b.forelder = q;
+            }
+            else {
+                q.høyre = b;
+                b.forelder = q;
+            }
         }
         else  // Tilfelle 3)
         {
