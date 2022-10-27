@@ -171,14 +171,14 @@ public class SBinTre<T> {
         Node<T> r = null;  // neste i inorden mhp. verdi
         Node<T> s = null;  // forelder til r
         
-        if (tom()) return 0;
+        if (tom()) return 0;                    //ingen endringer i tomt tre!
     
-        if (p.venstre == null && p.høyre == null) {
+        if (p.venstre == null && p.høyre == null) {         //treet inneholder bare rotnode
             rot = null;
             return 1;
         }
     
-        LinkedList<Node<T>> stakk = new LinkedList<>();
+        Stack<Node<T>> stakk = new Stack<>();
     
         while (p != null)     // leter etter verdi
         {
@@ -213,13 +213,16 @@ public class SBinTre<T> {
             p = stakk.pop();  // p har ikke venstre barn
             q = stakk.pop();  // forelder til p
         
-            if (p == q.venstre) {
-                q.venstre = p.høyre;
+            if (p.venstre == null && p.høyre == null) {
                 p.forelder = null;
+            }
+            else if (p == q.venstre) {
+                q.venstre = p.høyre;
+                p.høyre.forelder = q;
             }
             else {
                 q.høyre = p.høyre;
-                p.forelder = null;
+                p.høyre.forelder = q;
             }
         }
     
@@ -229,7 +232,7 @@ public class SBinTre<T> {
         q = stakk.pop();  // forelder til p
     
         if (p.venstre == null && p.høyre == null) {         // Tilfelle 1: p er bladnode
-            if (p == rot) rot = null;
+            if (p == rot) rot = p.høyre;
             else if (p == q.venstre) q.venstre = null;      // pekeren fra forelderen satt til null
             else q.høyre = null;
         }
@@ -273,20 +276,13 @@ public class SBinTre<T> {
         Node<T> p = rot, q = null;               // p starter i roten
         
         if (tom()) return;
-        
-        while (p != null) {
-            if (p == rot) {
-                p = null;
-                antall--;
-                return;
-            }
     
-            p = førstePostorden(p);
-            fjern(p.verdi);
-            p = nestePostorden(q);
-            fjern(p.verdi);
+        p = førstePostorden(rot);               //finner første node i postorden
+        while (p != rot) {                      //hvis vi ikke er tilbake i roten
+            fjern(p.verdi);                     //fjern noden
+            p = nestePostorden(p);              //og flytter til neste node i postorden
         }
-        
+        fjern(p.verdi);                         //fjerner roten
     }
 
     private static <T> Node<T> førstePostorden(Node<T> p) {
@@ -316,15 +312,15 @@ public class SBinTre<T> {
     }
     
     public void postorden(Oppgave<? super T> oppgave) {
-        if (tom()) return;
+        if (tom()) return;                          //oppgave kan ikke utføres på tomt tre
         
-        Node<T> p = rot;
+        Node<T> p = rot;                            //starter i rot-noden
         
-        p = førstePostorden(p);
-        oppgave.utførOppgave(p.verdi);
-        while (p != rot) {
-            p = nestePostorden(p);
-            oppgave.utførOppgave(p.verdi);
+        p = førstePostorden(p);                     //finner første noden i postorden
+        oppgave.utførOppgave(p.verdi);              //utfører oppgave
+        while (p != rot) {                          //stopper når vi er tilbake i rot-noden
+            p = nestePostorden(p);                  //finner neste noden i postorden
+            oppgave.utførOppgave(p.verdi);          //utfører oppgave
         }
     }
     
@@ -333,9 +329,9 @@ public class SBinTre<T> {
     }
 
     private void postordenRecursive(Node<T> p, Oppgave<? super T> oppgave) {
-        if (p.venstre != null) postordenRecursive(p.venstre, oppgave);
-        if (p.høyre != null) postordenRecursive(p.høyre, oppgave);
-        oppgave.utførOppgave(p.verdi);
+        if (p.venstre != null) postordenRecursive(p.venstre, oppgave);      //rekursivt kall på venstre side av tre
+        if (p.høyre != null) postordenRecursive(p.høyre, oppgave);          //rekursivt kall på høyre side av tre
+        oppgave.utførOppgave(p.verdi);                                      //utfører oppgave
     }
 
     public ArrayList<T> serialize() {
