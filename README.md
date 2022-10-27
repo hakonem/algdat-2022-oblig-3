@@ -17,14 +17,14 @@ roten, flytter vi til høyre. Hver gang vi finner søkeverdien i treet økes tel
 I oppgave 3 må førstePostorden(p) finne bladnoden som er lengst nede til venstre i treet. Dette gjorde jeg ved å begynne 
 i rotnoden og, i en while-løkke, flytte p til venstrebarn så lenge det er mulig og til høyrebarn ellers. Når vi kommer til 
 en bladnode, returneres p. Metoden nestePostorden(p) finner den neste noden i postorden, avhengig av om p er høyrebarn, 
-venstre- og alenebarn eller venstre barn der forelderen også ha høyrebarn. I siste tilfellet brukte jeg førstePostorden
+venstre- og alenebarn eller venstre barn der forelderen også har høyrebarn. I siste tilfellet brukte jeg førstePostorden
 for å finne neste node i postorden i forelderens høyre gren.
 
 Jeg brukte begge metodene fra oppgave 3 for å løse oppgave 4. I den public postorden-metoden startet jeg i rotnoden og
 kaller så på førstePostorden(p) for å finne den første noden i postorden, og deretter oppgave.utførOppgave(p.verdi) for å
 utføre oppgaven. I en while-løkke kaller jeg på nestePostorden(p) og oppgave.utførOppgave(p.verdi), som utfører samme 
-oppgave helt frem til vi kommer tilbake til roten. postordenRecursive(p, oppgave) er en private metode som kaller en public  
-metode rekursivt på rotens venstre og høyre grener.
+oppgave helt frem til vi kommer tilbake til roten. postordenRecursive(p, oppgave) er en private metode som kaller en 
+public metode rekursivt på rotens venstre og høyre grener.
 
 Jeg gjorde ikke oppgave 5.
 
