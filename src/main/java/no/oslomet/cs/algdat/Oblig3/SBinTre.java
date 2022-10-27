@@ -2,6 +2,7 @@ package no.oslomet.cs.algdat.Oblig3;
 
 
 import javax.sound.midi.SysexMessage;
+import java.nio.file.LinkOption;
 import java.util.*;
 
 public class SBinTre<T> {
@@ -132,7 +133,7 @@ public class SBinTre<T> {
         {
             Node<T> b = p.venstre != null ? p.venstre : p.høyre;  // b for barn
             if (p == rot) rot = b;
-            if (p == q.venstre) {
+            else if (p == q.venstre) {
                 q.venstre = b;                      // pekeren fra forelder til nytt barn
                 b.forelder = q;                     // pekeren fra nytt barn tilbake til forelder
             }
@@ -177,7 +178,7 @@ public class SBinTre<T> {
             return 1;
         }
     
-        Deque<Node<T>> stakk = new ArrayDeque<Node<T>>();
+        LinkedList<Node<T>> stakk = new LinkedList<>();
     
         while (p != null)     // leter etter verdi
         {
@@ -193,8 +194,8 @@ public class SBinTre<T> {
             {
                 if (cmp == 0)  // verdi ligger i p
                 {
-                    if (q != null) stakk.addLast(q);  // legger inn forelder til p
-                    stakk.addLast(p);  // legger inn p
+                    stakk.push(q);  // legger inn forelder til p
+                    stakk.push(p);  // legger inn p
                 }
                 // skal videre til høyre
                 q = p;
@@ -204,36 +205,46 @@ public class SBinTre<T> {
     
         // det er lagt inn to noder for hvert treff
         int verdiAntall = stakk.size()/2;
-        if (verdiAntall % 2 == 1) verdiAntall ++;
     
         if (verdiAntall == 0) return 0;
     
         while (stakk.size() > 2)
         {
-            p = stakk.removeLast();  // p har ikke venstre barn
-            q = stakk.removeLast();  // forelder til p
+            p = stakk.pop();  // p har ikke venstre barn
+            q = stakk.pop();  // forelder til p
         
-            if (p == q.venstre) q.venstre = p.høyre;
-            else q.høyre = p.høyre;
+            if (p == q.venstre) {
+                q.venstre = p.høyre;
+                p.forelder = null;
+            }
+            else {
+                q.høyre = p.høyre;
+                p.forelder = null;
+            }
         }
     
         // Har nå fjernet alle duplikatene,
         // men har igjen første forekomst
+        p = stakk.pop();  // p inneholder verdi
+        q = stakk.pop();  // forelder til p
     
-        p = stakk.removeLast();  // p inneholder verdi
-        q = stakk.removeLast();  // forelder til p
-    
-        // Tilfelle 1) og 2), dvs. p har ikke to barn
-        if (p.venstre == null || p.høyre == null)
-        {
-            Node<T> x = p.høyre == null ? p.venstre : p.høyre;
-            if (p == rot) rot = x;
-            else if (p == q.venstre) q.venstre = x;
-            else q.høyre = x;
+        if (p.venstre == null && p.høyre == null) {         // Tilfelle 1: p er bladnode
+            if (p == rot) rot = null;
+            else if (p == q.venstre) q.venstre = null;      // pekeren fra forelderen satt til null
+            else q.høyre = null;
         }
-        else  // p har to barn
+    
+        else if (p.venstre == null || p.høyre == null)  // Tilfelle 2: p har ett barn
         {
-            p.verdi = r.verdi;   // kopierer fra den neste i inorden
+            Node<T> b = p.venstre != null ? p.venstre : p.høyre;  // b for barn
+            if (p == rot) rot = b;
+            else if (p == q.venstre) q.venstre = b;
+            else q.høyre = b;
+        }
+        else  // Tilfelle 3: p har to barn
+        {
+            p.verdi = r.verdi;   // kopierer verdien i r til p
+        
             if (r == p.høyre) p.høyre = r.høyre;
             else s.venstre = r.høyre;
         }
@@ -259,28 +270,23 @@ public class SBinTre<T> {
     }
 
     public void nullstill() {
-        Node<T> p = rot;                // p starter i roten
+        Node<T> p = rot, q = null;               // p starter i roten
         
         if (tom()) return;
         
-        if (p.venstre == null && p.høyre == null) {
-            fjern(p.verdi);
-            return;
-        }
         while (p != null) {
-            if (p.venstre != null) {
-                p = p.venstre;
+            if (p == rot) {
+                p = null;
+                antall--;
                 return;
             }
+    
+            p = førstePostorden(p);
             fjern(p.verdi);
-            if (p.høyre != null) {
-                p = p.høyre;
-                return;
-            }
+            p = nestePostorden(q);
             fjern(p.verdi);
-           
-            return;
         }
+        
     }
 
     private static <T> Node<T> førstePostorden(Node<T> p) {
@@ -308,39 +314,20 @@ public class SBinTre<T> {
         }
         return p;                                       // returnerer p
     }
-
-    //Kode fra løsningsforslag til Avsnitt 5.1.15, oppgave 1 i kompendiet
+    
     public void postorden(Oppgave<? super T> oppgave) {
         if (tom()) return;
         
         Node<T> p = rot;
         
-        while (true) {
-            if (p.venstre != null) p = p.venstre;
-            else if (p.høyre != null) p = p.høyre;
-            else break;
-        }
-        
+        p = førstePostorden(p);
         oppgave.utførOppgave(p.verdi);
-        
-        while (true) {
-            if (p == rot) break;
-            
-            Node<T> q = p.forelder;
-            if (q.høyre == null || p == q.høyre) p = q;
-            else {
-                p = q.høyre;
-                while (true) {
-                    if (p.venstre != null) p = p.venstre;
-                    else if (p.høyre != null) p = p.høyre;
-                    else break;
-                }
-            }
+        while (p != rot) {
+            p = nestePostorden(p);
             oppgave.utførOppgave(p.verdi);
         }
     }
     
-    //Kode fra løsningsforslag til Avsnitt 5.1.7, oppgave 7 i kompendiet
     public void postordenRecursive(Oppgave<? super T> oppgave) {
         if (rot != null) postordenRecursive(rot, oppgave);
     }
